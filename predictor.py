@@ -48,7 +48,7 @@ def load_social_features(video_id, video_user, user_details):
 def load_text_sent_features(sent_scores):
     with open(sent_scores, encoding='utf-8') as f:
         scores = []
-        for x in f.readline():
+        for x in f.readlines():
             score = float(x)
             if score < -0.25:
                 scores += [0]
