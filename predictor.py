@@ -6,6 +6,8 @@ from sklearn.model_selection import KFold
 from sklearn.decomposition import PCA
 from sklearn.metrics import mean_squared_error
 from sklearn.svm import SVR
+from sklearn.feature_selection import SelectPercentile, f_classif
+from sklearn.grid_search import GridSearchCV
 
 
 def load_social_features(video_id, video_user, user_details):
@@ -28,11 +30,9 @@ def load_social_features(video_id, video_user, user_details):
         # 3. Average Like Count
         # 4. Follower Count
         # 5. Follower / Followee Ratio
-        social_features[data[0]] = [float(data[1]), \
-                                    float(data[1]) / float(data[5]), \
+        social_features[data[0]] = [float(data[1]) / float(data[5]), \
                                     float(data[4]) / float(data[5]), \
-                                    float(data[2]), \
-                                    float(data[2]) / float(data[3])]
+                                    float(data[2])]
 
     res = [] #social_feature vector for each video
     for v in vid:
@@ -40,13 +40,21 @@ def load_social_features(video_id, video_user, user_details):
             res.append(social_features[vid_uid_dict[v]])
         except:
             #note: there are some users don't have social features, just assgin zero-vector to them
-            res.append([0.0, 0.0, 0.0, 0.0, 0.0]) 
+            res.append([0.0, 0.0, 0.0]) 
 
     return np.array(res, dtype=np.float32)
 
 def load_text_sent_features(sent_scores):
     with open(sent_scores, encoding='utf-8') as f:
-        scores = [float(x)**2 for x in f.readlines()]
+        scores = []
+        for x in f.readline():
+            score = float(x)
+            if score < -0.25:
+                scores += [0]
+            elif score <= 0.25:
+                scores += [1]
+            else:
+                scores += [2]
         return np.array(scores).reshape(-1,1)
 
 def main():
@@ -68,15 +76,16 @@ def main():
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # feature dimension reduction: it's up to you to decide the size of reduced dimensions; the main purpose is to reduce the computation complexity
-    pca = PCA(n_components=20)
-    imgNet_feature = pca.fit_transform(imgNet_feature)
-    pca = PCA(n_components=40)
-    vSenti_feature = pca.fit_transform(vSenti_feature)
-    pca = PCA(n_components=10)
-    sen2vec_feature = pca.fit_transform(sen2vec_feature)
+    # pca = PCA(n_components=20)
+    # imgNet_feature = pca.fit_transform(imgNet_feature)
+    # pca = PCA(n_components=40)
+    # vSenti_feature = pca.fit_transform(vSenti_feature)
+    # pca = PCA(n_components=10)
+    # sen2vec_feature = pca.fit_transform(sen2vec_feature)
     
     # contatenate all the features(after dimension reduction)
     concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
+
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     # load ground-truth
@@ -86,6 +95,10 @@ def main():
         ground_truth.append(float(line.strip().split('::::')[0])) 
     ground_truth = np.array(ground_truth, dtype=np.float32)
     
+    # Prepare Features
+    f_selector = SelectPercentile(f_classif, percentile=60)
+    concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+
     
     print("Start training and predict...")
     classifier = SVR(gamma='auto')
