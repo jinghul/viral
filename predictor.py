@@ -97,11 +97,10 @@ def main():
     # Prepare Features with Percentile
     f_selector = SelectPercentile(f_classif, percentile=60)
     concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
-
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(C=1, gamma=0.005)
+    classifier = SVR(C=5, gamma=0.005)
     kf = KFold(n_splits=10)
     
     nMSEs = []
