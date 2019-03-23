@@ -99,7 +99,7 @@ def main():
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(C=100, gamma='auto')
+    classifier = SVR(C=20, gamma=0.005)
 
     kf = KFold(n_splits=10)
     nMSEs = []
@@ -117,7 +117,7 @@ def main():
         count += 1
         print("Round %d/10 of nMSE is: %f" %(count, nMSE))
 
-        with open(os.path.join('res_2.txt'), 'w') as f:
+        with open(os.path.join('res_3.txt'), 'w') as f:
             for i in test:
                 f.write('%s %s %s %s %s\n' % (str(concat_feature[i,0]), str(concat_feature[i,1]), str(concat_feature[i,2]), str(ground_truth[i]), str(model.predict(concat_feature[i].reshape(1,-1))[0])))
     
