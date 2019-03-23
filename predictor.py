@@ -64,6 +64,13 @@ def main():
     # load data
     print("Loading data...")
 
+    # load ground-truth
+    ground_truth = []
+    for line in open(os.path.join(data_dir, 'ground_truth.txt')):
+        # you can use more than one popularity index as ground-truth and average the results; for each video we have four indexes: number of loops(view), likes, reposts, and comments; the first one(loops) is compulsory.
+        ground_truth.append(float(line.strip().split('::::')[0])) 
+    ground_truth = np.array(ground_truth, dtype=np.float32)
+
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
     imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
@@ -77,7 +84,7 @@ def main():
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # feature dimension reduction: it's up to you to decide the size of reduced dimensions; the main purpose is to reduce the computation complexity
-    # pca = PCA(n_components=20)
+    # pca = PCA(n_components=30)
     # imgNet_feature = pca.fit_transform(imgNet_feature)
     # pca = PCA(n_components=40)
     # vSenti_feature = pca.fit_transform(vSenti_feature)
@@ -86,24 +93,16 @@ def main():
     
     # concatenate all the features(after dimension reduction)
     concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
-
-    print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
-    
-    # load ground-truth
-    ground_truth = []
-    for line in open(os.path.join(data_dir, 'ground_truth.txt')):
-        # you can use more than one popularity index as ground-truth and average the results; for each video we have four indexes: number of loops(view), likes, reposts, and comments; the first one(loops) is compulsory.
-        ground_truth.append(float(line.strip().split('::::')[0])) 
-    ground_truth = np.array(ground_truth, dtype=np.float32)
     
     # Prepare Features with Percentile
     f_selector = SelectPercentile(f_classif, percentile=60)
     concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+    concat_feature = PCA(n_components=200).fit_transform(concat_feature)
+    
+    print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    steps = [('reduce_dim',PCA(n_components=10)), ('svr', SVR(gamma='auto'))]
-    # classifier = Pipeline(steps)
-    classifier = SVR(C=10, gamma=0.005)
+    classifier = SVR(C=1, gamma=0.005)
     kf = KFold(n_splits=10)
     
     nMSEs = []
