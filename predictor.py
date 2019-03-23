@@ -4,13 +4,20 @@ import os
 import sys
 import time
 import numpy as np
+
+# For saving trained models
+from joblib import dump, load
+
+# sklearn tools
 from sklearn.model_selection import KFold
 from sklearn.decomposition import PCA
 from sklearn.metrics import mean_squared_error
-from sklearn.svm import SVR
 from sklearn.feature_selection import SelectPercentile, f_classif
 from sklearn.model_selection import GridSearchCV
-from joblib import dump, load
+
+# Models
+from sklearn.svm import SVR
+from sklearn.kernel_ridge import KernelRidge
 
 def load_social_features(video_id, video_user, user_details):
     vid = [] #video id list
@@ -89,8 +96,8 @@ def main(record):
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    # concat_feature = text_feature
-    concat_feature = np.concatenate([visual_feature, social_feature], axis=1) 
+    concat_feature = social_feature
+    # concat_feature = np.concatenate([visual_feature, social_feature], axis=1) 
     
     # Prepare Features with Percentile
     # f_selector = SelectPercentile(f_classif, percentile=70)
@@ -98,7 +105,8 @@ def main(record):
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(gamma='auto')
+    # classifier = SVR(gamma='auto')
+    classifier = KernelRidge()
 
     kf = KFold(n_splits=10)
     nMSEs = []
