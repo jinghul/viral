@@ -102,11 +102,11 @@ def main(record):
     # Prepare Features with Percentile
     # f_selector = SelectPercentile(f_classif, percentile=70)
     # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
-    print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
+    print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
     # classifier = SVR(gamma='auto')
-    classifier = KernelRidge()
+    classifier = KernelRidge(kernel='rbf')
 
     kf = KFold(n_splits=10)
     nMSEs = []
