@@ -96,17 +96,17 @@ def main(record):
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    concat_feature = np.copy(social_feature)
+    concat_feature = social_feature
     # concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
 
-    i = 0
-    while i < len(social_feature):
+    empty_indices = []
+    for i in range(len(social_feature)):
         if np.array_equal(social_feature[i],[0,0,0,0,0]):
-            concat_feature = np.delete(concat_feature, i, 0)
-            ground_truth = np.delete(ground_truth, i, 0)
-            i -= 1
-        i += 1
-    
+            empty_indices += [i]
+            
+    concat_feature = np.delete(concat_feature, empty_indices, 0)
+    ground_truth = np.delete(ground_truth, empty_indices, 0)
+
     # Prepare Features with Percentile
     # f_selector = SelectPercentile(f_classif, percentile=70)
     # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
