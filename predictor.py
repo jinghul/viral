@@ -84,12 +84,12 @@ def main():
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # feature dimension reduction: it's up to you to decide the size of reduced dimensions; the main purpose is to reduce the computation complexity
-    # pca = PCA(n_components=30)
-    # imgNet_feature = pca.fit_transform(imgNet_feature)
-    # pca = PCA(n_components=40)
-    # vSenti_feature = pca.fit_transform(vSenti_feature)
-    # pca = PCA(n_components=10)
-    # sen2vec_feature = pca.fit_transform(sen2vec_feature)
+    pca = PCA(n_components=50)
+    imgNet_feature = pca.fit_transform(imgNet_feature)
+    pca = PCA(n_components=40)
+    vSenti_feature = pca.fit_transform(vSenti_feature)
+    pca = PCA(n_components=20)
+    sen2vec_feature = pca.fit_transform(sen2vec_feature)
     
     # concatenate all the features(after dimension reduction)
     concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
@@ -97,8 +97,7 @@ def main():
     # Prepare Features with Percentile
     f_selector = SelectPercentile(f_classif, percentile=60)
     concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
-    concat_feature = PCA(n_components=200).fit_transform(concat_feature)
-    
+
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
