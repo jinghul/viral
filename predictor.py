@@ -36,16 +36,29 @@ def load_social_features(video_id, video_user, user_details):
 
     return np.array(res, dtype=np.float32) 
 
+def load_text_sent_features(sent_scores):
+    scores = []
+    with open(sent_scores, encoding='utf-8') as f:
+        for line in enumerate(f):
+            scores += line
+    return scores
 
 def main():
     data_dir = './data/' 
     
     # load data
     print("Loading data...")
+
+    # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
     imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
     vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
+
+    # Text
     sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
+    text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
+
+    # Social
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
     
     # feature dimension reduction: it's up to you to decide the size of reduced dimensions; the main purpose is to reduce the computation complexity
@@ -57,7 +70,7 @@ def main():
     sen2vec_feature = pca.fit_transform(sen2vec_feature)
     
     # contatenate all the features(after dimension reduction)
-    concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, social_feature], axis=1) 
+    concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     # load ground-truth
@@ -69,23 +82,25 @@ def main():
     
     
     print("Start training and predict...")
+    classifier = SVR(gamma='auto')
     kf = KFold(n_splits=10)
+    
     nMSEs = []
+    count = 0
     for train, test in kf.split(concat_feature):
-        # model initialize: you can tune the parameters within SVR(http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html); Or you can select other regression models
-        model = SVR(gamma='auto')
-        
+
         # train
-        model.fit(concat_feature[train], ground_truth[train])
+        model = classifier.fit(concat_feature[train], ground_truth[train])
         
         # predict
         predicts = model.predict(concat_feature[test])
         nMSE = mean_squared_error(ground_truth[test], predicts) / np.mean(np.square(ground_truth[test]))
         nMSEs.append(nMSE)
+
+        count += 1
+        print("Round %f/10 of nMSE is: %f" %(count, nMSE))
     
-        print("This round of nMSE is: %f" %(nMSE))
-    
-    print('Average nMSE is %f.' %(np.mean(nMSEs)))
+    print('Average nMSE is %f' %(np.mean(nMSEs)))
 
 
 if __name__ == "__main__":
