@@ -22,9 +22,13 @@ def load_social_features(video_id, video_user, user_details):
     for line in open(user_details, encoding='utf-8'):
         data = line.strip().split("::::")
 
-        # You should modify here to add more user social information
-        # Here we only use two user social infomation: loops and followers. You should consider more user social information. For more details about other social information, pls refer to ./data/README.txt -> 4.user_details.txt 
-        social_features[data[0]] = [float(i) for i in data[1:3]] 
+        # Social Features **
+        # 1. Total Loop Count
+        # 2. Average Loop Count
+        # 3. Average Like Count
+        # 4. Follower Count
+        # 5. Follower / Followee Ratio
+        social_features[data[0]] = [float(data[1])] + [float(data[1]) / float(data[5])] + [float(data[4]) / float(data[5])] + [float(data[2])] + [float(data[2]) / float(data[3])]
 
     res = [] #social_feature vector for each video
     for v in vid:
@@ -38,7 +42,7 @@ def load_social_features(video_id, video_user, user_details):
 
 def load_text_sent_features(sent_scores):
     with open(sent_scores, encoding='utf-8') as f:
-        scores = f.readlines()
+        scores = [float(x)**2 for x in f.readlines()]
         return np.array(scores).reshape(-1,1)
 
 def main():
@@ -96,7 +100,7 @@ def main():
         nMSEs.append(nMSE)
 
         count += 1
-        print("Round %f/10 of nMSE is: %f" %(count, nMSE))
+        print("Round %d/10 of nMSE is: %f" %(count, nMSE))
     
     print('Average nMSE is %f' %(np.mean(nMSEs)))
 
