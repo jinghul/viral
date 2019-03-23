@@ -37,11 +37,9 @@ def load_social_features(video_id, video_user, user_details):
     return np.array(res, dtype=np.float32) 
 
 def load_text_sent_features(sent_scores):
-    scores = []
     with open(sent_scores, encoding='utf-8') as f:
-        for line in enumerate(f):
-            scores += line
-    return np.array(scores)
+        scores = f.readlines()
+        return np.array(scores).reshape(-1,1)
 
 def main():
     data_dir = './data/' 
@@ -60,7 +58,7 @@ def main():
 
     # Social
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
-    
+
     # feature dimension reduction: it's up to you to decide the size of reduced dimensions; the main purpose is to reduce the computation complexity
     pca = PCA(n_components=20)
     imgNet_feature = pca.fit_transform(imgNet_feature)
