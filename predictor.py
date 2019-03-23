@@ -50,7 +50,8 @@ def load_social_features(video_id, video_user, user_details):
         try:
             res.append(social_features[vid_uid_dict[v]])
         except:
-            #note: there are some users don't have social features, just assgin zero-vector to them
+            # note: there are some users don't have social features, just assgin zero-vector to them
+            # update: remove these later on so matrices are not singular
             res.append([0.0, 0.0, 0.0, 0.0, 0.0]) 
 
     return np.array(res, dtype=np.float32)
@@ -96,14 +97,15 @@ def main(record):
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    concat_feature = social_feature
-    # concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
+    # concat_feature = social_feature
+    concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
 
     empty_indices = []
     for i in range(len(social_feature)):
         if np.array_equal(social_feature[i],[0,0,0,0,0]):
             empty_indices += [i]
-            
+
+    # remove the empty social feature indicies
     concat_feature = np.delete(concat_feature, empty_indices, 0)
     ground_truth = np.delete(ground_truth, empty_indices, 0)
 
