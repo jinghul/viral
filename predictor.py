@@ -102,8 +102,8 @@ def main(record):
     i = 0
     while i < len(social_feature):
         if np.array_equal(social_feature[i],[0,0,0,0,0]):
-            np.delete(concat_feature, i, 0)
-            np.delete(ground_truth, i, 0)
+            concat_feature = np.delete(concat_feature, i, 0)
+            ground_truth = np.delete(ground_truth, i, 0)
             i -= 1
         i += 1
     
