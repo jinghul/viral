@@ -101,8 +101,8 @@ def main(record):
 
     for i in range(len(social_feature)):
         if np.array_equal(social_feature[i],[0,0,0,0,0]):
-            print(social_feature[i])
             np.delete(concat_feature, i, 0)
+            np.delete(ground_truth, i, 0)
     
     # Prepare Features with Percentile
     # f_selector = SelectPercentile(f_classif, percentile=70)
