@@ -92,15 +92,16 @@ def main():
     sen2vec_feature = pca.fit_transform(sen2vec_feature)
     
     # concatenate all the features(after dimension reduction)
-    concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
+    # concat_feature = social_feature
+    concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature], axis=1) 
     
     # Prepare Features with Percentile
-    # f_selector = SelectPercentile(f_classif, percentile=60)
+    # f_selector = SelectPercentile(f_classif, percentile=70)
     # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(C=10, gamma=0.01)
+    classifier = SVR(gamma='auto')
     kf = KFold(n_splits=10)
     
     nMSEs = []
