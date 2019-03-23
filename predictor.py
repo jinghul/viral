@@ -1,15 +1,16 @@
 # encoding=utf-8
 
 import os
+import sys
+import time
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.decomposition import PCA
 from sklearn.metrics import mean_squared_error
 from sklearn.svm import SVR
 from sklearn.feature_selection import SelectPercentile, f_classif
-from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
-
+from joblib import dump, load
 
 def load_social_features(video_id, video_user, user_details):
     vid = [] #video id list
@@ -26,12 +27,16 @@ def load_social_features(video_id, video_user, user_details):
         data = line.strip().split("::::")
 
         # Social Features **
-        # 1. Average Loop Count
-        # 2. Average Like Count
-        # 3. Follower Count
-        social_features[data[0]] = [float(data[1]) / float(data[5]), \
+        # 1. Total Loop Count
+        # 2. Average Loop Count
+        # 3. Average Like Count
+        # 4. Follower Count
+        # 5. Follower / Followee Ratio
+        social_features[data[0]] = [float(data[1]), \
+                                    float(data[1]) / float(data[5]), \
                                     float(data[4]) / float(data[5]), \
-                                    float(data[2])]
+                                    float(data[2]), \
+                                    float(data[2]) / float(data[3])]
 
     res = [] #social_feature vector for each video
     for v in vid:
@@ -39,7 +44,7 @@ def load_social_features(video_id, video_user, user_details):
             res.append(social_features[vid_uid_dict[v]])
         except:
             #note: there are some users don't have social features, just assgin zero-vector to them
-            res.append([0.0, 0.0, 0.0]) 
+            res.append([0.0, 0.0, 0.0, 0.0, 0.0]) 
 
     return np.array(res, dtype=np.float32)
 
@@ -56,7 +61,7 @@ def load_text_sent_features(sent_scores):
                 scores += [2]
         return np.array(scores).reshape(-1,1)
 
-def main():
+def main(record):
     data_dir = './data/' 
     
     # load data
@@ -71,27 +76,21 @@ def main():
 
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
-    imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
-    vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
+    imgNet_feature = PCA(n_components=20).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    vSenti_feature = PCA(n_components=40).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
-    sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
+    sen2vec_feature = PCA(n_components=10).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
     text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
+    text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
 
     # Social
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
-    # feature dimension reduction: it's up to you to decide the size of reduced dimensions; the main purpose is to reduce the computation complexity
-    pca = PCA(n_components=20)
-    imgNet_feature = pca.fit_transform(imgNet_feature)
-    pca = PCA(n_components=40)
-    vSenti_feature = pca.fit_transform(vSenti_feature)
-    pca = PCA(n_components=10)
-    sen2vec_feature = pca.fit_transform(sen2vec_feature)
-    
     # concatenate all the features(after dimension reduction)
-    concat_feature = social_feature
-    # concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
+    # concat_feature = text_feature
+    concat_feature = np.concatenate([visual_feature, social_feature], axis=1) 
     
     # Prepare Features with Percentile
     # f_selector = SelectPercentile(f_classif, percentile=70)
@@ -99,11 +98,12 @@ def main():
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(C=20, gamma=0.005)
+    classifier = SVR(gamma='auto')
 
     kf = KFold(n_splits=10)
     nMSEs = []
     count = 0
+
     for train, test in kf.split(concat_feature):
 
         # train
@@ -111,17 +111,26 @@ def main():
         
         # predict
         predicts = model.predict(concat_feature[test])
+
         nMSE = mean_squared_error(ground_truth[test], predicts) / np.mean(np.square(ground_truth[test]))
         nMSEs.append(nMSE)
 
         count += 1
         print("Round %d/10 of nMSE is: %f" %(count, nMSE))
 
-        with open(os.path.join('res_3.txt'), 'w') as f:
-            for i in test:
-                f.write('%s %s %s %s %s\n' % (str(concat_feature[i,0]), str(concat_feature[i,1]), str(concat_feature[i,2]), str(ground_truth[i]), str(model.predict(concat_feature[i].reshape(1,-1))[0])))
+        
     
     print('Average nMSE is %f' %(np.mean(nMSEs)))
 
+    # Look at Results
+    if record:
+        res_file = "res_%d" % int(time.time())
+        with open(os.path.join(res_file), 'w') as f:
+            for i in range(100):
+                f.write('%s %s %s\n' % (str(concat_feature[i]), str(ground_truth[i]), str(model.predict(concat_feature[i].reshape(1,-1))[0])))
+
 if __name__ == "__main__":
-    main()
+    record = False
+    if len(sys.argv) > 1:
+        record = sys.argv[1] == 't' or sys.argv[1] == 'true'
+    main(record)
