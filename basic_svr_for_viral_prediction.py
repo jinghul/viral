@@ -58,14 +58,12 @@ def main():
     
     # contatenate all the features(after dimension reduction)
     concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, social_feature], axis=1) 
-    
-    # concat_feature = np.concatenate([hist_feature], axis=1) 
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     # load ground-truth
     ground_truth = []
     for line in open(os.path.join(data_dir, 'ground_truth.txt')):
-        #you can use more than one popularity index as ground-truth and average the results; for each video we have four indexes: number of loops(view), likes, reposts, and comments; the first one(loops) is compulsory.
+        # you can use more than one popularity index as ground-truth and average the results; for each video we have four indexes: number of loops(view), likes, reposts, and comments; the first one(loops) is compulsory.
         ground_truth.append(float(line.strip().split('::::')[0])) 
     ground_truth = np.array(ground_truth, dtype=np.float32)
     
@@ -75,9 +73,11 @@ def main():
     nMSEs = []
     for train, test in kf.split(concat_feature):
         # model initialize: you can tune the parameters within SVR(http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html); Or you can select other regression models
-        model = SVR()
+        model = SVR(gamma='auto')
+        
         # train
         model.fit(concat_feature[train], ground_truth[train])
+        
         # predict
         predicts = model.predict(concat_feature[test])
         nMSE = mean_squared_error(ground_truth[test], predicts) / np.mean(np.square(ground_truth[test]))

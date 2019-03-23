@@ -8,6 +8,7 @@ Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for
 Sentiment Analysis of Social Media Text. Eighth International Conference on
 Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
 """
+
 import io
 import os
 import numpy as np
@@ -215,12 +216,17 @@ class SentimentIntensityAnalyzer(object):
     Give a sentiment intensity score to sentences.
     """
 
-    def __init__(self, lexicon_file="sentiment_lexicon.txt"):
+    def __init__(self, lexicon_file="sentiment_lexicon.txt", emoji_lexicon="emoji_utf8_lexicon.txt"):
         _this_module_file_path_ = abspath(getsourcefile(lambda: 0))
         lexicon_full_filepath = join(dirname(_this_module_file_path_), lexicon_file)
         with io.open(lexicon_full_filepath, encoding='utf-8') as f:
             self.lexicon_full_filepath = f.read()
         self.lexicon = self.make_lex_dict()
+
+        emoji_full_filepath = join(os.path.dirname(_this_module_file_path_), emoji_lexicon)
+        with open(emoji_full_filepath, encoding='utf-8') as f:
+            self.emoji_full_filepath = f.read()
+        self.emojis = self.make_emoji_dict()
 
     def make_lex_dict(self):
         """
@@ -232,12 +238,35 @@ class SentimentIntensityAnalyzer(object):
             lex_dict[word] = float(measure)
         return lex_dict
 
+    def make_emoji_dict(self):
+        """
+        Convert emoji lexicon file to a dictionary
+        """
+        emoji_dict = {}
+        for line in self.emoji_full_filepath.split('\n'):
+            (emoji, description) = line.strip().split('\t')[0:2]
+            emoji_dict[emoji] = description
+        return emoji_dict
+
     def polarity_scores(self, text):
         """
         Return a float for sentiment strength based on the input text.
         Positive values are positive valence, negative value are negative
         valence.
         """
+
+        # convert emojis to their textual descriptions
+        text_token_list = text.split()
+        text_no_emoji_lst = []
+        for token in text_token_list:
+            if token in self.emojis:
+                # get the textual description
+                description = self.emojis[token]
+                text_no_emoji_lst.append(description)
+            else:
+                text_no_emoji_lst.append(token)
+        text = " ".join(x for x in text_no_emoji_lst)
+
         sentitext = SentiText(text)
         #text, words_and_emoticons, is_cap_diff = self.preprocess(text)
 
