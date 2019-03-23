@@ -26,11 +26,9 @@ def load_social_features(video_id, video_user, user_details):
         data = line.strip().split("::::")
 
         # Social Features **
-        # 1. Total Loop Count
-        # 2. Average Loop Count
-        # 3. Average Like Count
-        # 4. Follower Count
-        # 5. Follower / Followee Ratio
+        # 1. Average Loop Count
+        # 2. Average Like Count
+        # 3. Follower Count
         social_features[data[0]] = [float(data[1]) / float(data[5]), \
                                     float(data[4]) / float(data[5]), \
                                     float(data[2])]
@@ -92,18 +90,18 @@ def main():
     sen2vec_feature = pca.fit_transform(sen2vec_feature)
     
     # concatenate all the features(after dimension reduction)
-    # concat_feature = social_feature
-    concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature], axis=1) 
+    concat_feature = social_feature
+    # concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
     
     # Prepare Features with Percentile
-    f_selector = SelectPercentile(f_classif, percentile=70)
-    concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+    # f_selector = SelectPercentile(f_classif, percentile=70)
+    # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(C=10, gamma=0.005)
+    classifier = SVR(C=100, gamma='auto')
+
     kf = KFold(n_splits=10)
-    
     nMSEs = []
     count = 0
     for train, test in kf.split(concat_feature):
@@ -118,9 +116,12 @@ def main():
 
         count += 1
         print("Round %d/10 of nMSE is: %f" %(count, nMSE))
+
+        with open(os.path.join('res_2.txt'), 'w') as f:
+            for i in test:
+                f.write('%s %s %s %s %s\n' % (str(concat_feature[i,0]), str(concat_feature[i,1]), str(concat_feature[i,2]), str(ground_truth[i]), str(model.predict(concat_feature[i].reshape(1,-1))[0])))
     
     print('Average nMSE is %f' %(np.mean(nMSEs)))
-
 
 if __name__ == "__main__":
     main()
