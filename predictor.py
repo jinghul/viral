@@ -99,10 +99,13 @@ def main(record):
     concat_feature = np.copy(social_feature)
     # concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
 
-    for i in range(len(social_feature)):
+    i = 0
+    while i < len(social_feature):
         if np.array_equal(social_feature[i],[0,0,0,0,0]):
             np.delete(concat_feature, i, 0)
             np.delete(ground_truth, i, 0)
+            i -= 1
+        i += 1
     
     # Prepare Features with Percentile
     # f_selector = SelectPercentile(f_classif, percentile=70)
