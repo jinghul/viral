@@ -106,7 +106,7 @@ def main(record):
     
     print("Start training and predict...")
     # classifier = SVR(gamma='auto')
-    classifier = KernelRidge(alpha=1.0, kernel='rbf', kernel_params={'solver':'svd'})
+    classifier = KernelRidge(alpha=1.0, kernel='rbf')
 
     kf = KFold(n_splits=10)
     nMSEs = []
