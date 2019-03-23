@@ -96,8 +96,8 @@ def main(record):
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    # concat_feature = social_feature
-    concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1) 
+    concat_feature = social_feature
+    # concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1) 
     
     # Prepare Features with Percentile
     # f_selector = SelectPercentile(f_classif, percentile=70)
@@ -106,7 +106,7 @@ def main(record):
     
     print("Start training and predict...")
     # classifier = SVR(gamma='auto')
-    classifier = KernelRidge(alpha=1.0, kernel='rbf')
+    classifier = KernelRidge(alpha=1.0, kernel='rbf', kernel_params={'solver':'svd'})
 
     kf = KFold(n_splits=10)
     nMSEs = []
