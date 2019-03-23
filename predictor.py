@@ -7,7 +7,8 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import mean_squared_error
 from sklearn.svm import SVR
 from sklearn.feature_selection import SelectPercentile, f_classif
-from sklearn.grid_search import GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
 
 
 def load_social_features(video_id, video_user, user_details):
@@ -83,7 +84,7 @@ def main():
     # pca = PCA(n_components=10)
     # sen2vec_feature = pca.fit_transform(sen2vec_feature)
     
-    # contatenate all the features(after dimension reduction)
+    # concatenate all the features(after dimension reduction)
     concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
 
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
@@ -95,13 +96,14 @@ def main():
         ground_truth.append(float(line.strip().split('::::')[0])) 
     ground_truth = np.array(ground_truth, dtype=np.float32)
     
-    # Prepare Features
+    # Prepare Features with Percentile
     f_selector = SelectPercentile(f_classif, percentile=60)
     concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
-
     
     print("Start training and predict...")
-    classifier = SVR(gamma='auto')
+    steps = [('reduce_dim',PCA(n_components=10)), ('svr', SVR(gamma='auto'))]
+    # classifier = Pipeline(steps)
+    classifier = SVR(C=10, gamma=0.005)
     kf = KFold(n_splits=10)
     
     nMSEs = []
