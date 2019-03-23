@@ -95,8 +95,8 @@ def main():
     concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature, social_feature], axis=1) 
     
     # Prepare Features with Percentile
-    f_selector = SelectPercentile(f_classif, percentile=60)
-    concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+    # f_selector = SelectPercentile(f_classif, percentile=60)
+    # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
