@@ -100,7 +100,7 @@ def main():
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(C=5, gamma=0.005)
+    classifier = SVR(C=10, gamma=0.01)
     kf = KFold(n_splits=10)
     
     nMSEs = []
