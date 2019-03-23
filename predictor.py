@@ -41,7 +41,7 @@ def load_text_sent_features(sent_scores):
     with open(sent_scores, encoding='utf-8') as f:
         for line in enumerate(f):
             scores += line
-    return scores
+    return np.array(scores)
 
 def main():
     data_dir = './data/' 
