@@ -84,11 +84,11 @@ def main():
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # feature dimension reduction: it's up to you to decide the size of reduced dimensions; the main purpose is to reduce the computation complexity
-    pca = PCA(n_components=50)
+    pca = PCA(n_components=20)
     imgNet_feature = pca.fit_transform(imgNet_feature)
     pca = PCA(n_components=40)
     vSenti_feature = pca.fit_transform(vSenti_feature)
-    pca = PCA(n_components=20)
+    pca = PCA(n_components=10)
     sen2vec_feature = pca.fit_transform(sen2vec_feature)
     
     # concatenate all the features(after dimension reduction)
@@ -96,12 +96,12 @@ def main():
     concat_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature, sen2vec_feature, text_sent_feature], axis=1) 
     
     # Prepare Features with Percentile
-    # f_selector = SelectPercentile(f_classif, percentile=70)
-    # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+    f_selector = SelectPercentile(f_classif, percentile=70)
+    concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
     print("The input data dimension is: (%d, %d)" %(concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(gamma='auto')
+    classifier = SVR(C=10, gamma=0.005)
     kf = KFold(n_splits=10)
     
     nMSEs = []
