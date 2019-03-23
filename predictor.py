@@ -98,16 +98,16 @@ def main(record):
 
     # concatenate all the features(after dimension reduction)
     # concat_feature = social_feature
-    concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
+    concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1)
 
-    empty_indices = []
-    for i in range(len(social_feature)):
-        if np.array_equal(social_feature[i],[0,0,0,0,0]):
-            empty_indices += [i]
+    # empty_indices = []
+    # for i in range(len(social_feature)):
+    #     if np.array_equal(social_feature[i],[0,0,0,0,0]):
+    #         empty_indices += [i]
 
-    # remove the empty social feature indicies
-    concat_feature = np.delete(concat_feature, empty_indices, 0)
-    ground_truth = np.delete(ground_truth, empty_indices, 0)
+    # # remove the empty social feature indicies
+    # concat_feature = np.delete(concat_feature, empty_indices, 0)
+    # ground_truth = np.delete(ground_truth, empty_indices, 0)
 
     # Prepare Features with Percentile
     # f_selector = SelectPercentile(f_classif, percentile=70)
