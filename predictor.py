@@ -19,6 +19,9 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVR
 from sklearn.kernel_ridge import KernelRidge
 
+# Custom Regressor Stacker
+from stack import Stacker
+
 def load_social_features(video_id, video_user, user_details):
     vid = [] #video id list
     for line in open(video_id):
@@ -84,12 +87,15 @@ def main(record):
 
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
-    imgNet_feature = PCA(n_components=20).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
-    vSenti_feature = PCA(n_components=40).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
+    # imgNet_feature = PCA(n_components=20).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
+    # vSenti_feature = PCA(n_components=40).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
     visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
-    sen2vec_feature = PCA(n_components=10).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
+    sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
+    # sen2vec_feature = PCA(n_components=10).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
     text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
     text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
 
@@ -110,13 +116,13 @@ def main(record):
     # ground_truth = np.delete(ground_truth, empty_indices, 0)
 
     # Prepare Features with Percentile
-    # f_selector = SelectPercentile(f_classif, percentile=70)
-    # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+    f_selector = SelectPercentile(f_classif, percentile=70)
+    concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
-    # classifier = SVR(gamma='auto')
-    classifier = KernelRidge(alpha=1.0, kernel='rbf')
+    classifier = SVR(C=30, gamma=0.01)
+    # classifier = KernelRidge(alpha=1.0, kernel='rbf')
 
     kf = KFold(n_splits=10)
     nMSEs = []
