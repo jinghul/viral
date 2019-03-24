@@ -88,9 +88,9 @@ def main(record):
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
     # imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
-    imgNet_feature = PCA(n_components=800).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    imgNet_feature = PCA(n_components=1000).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
     # vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
-    vSenti_feature = PCA(n_components=100).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    vSenti_feature = PCA(n_components=1500).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
     visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
