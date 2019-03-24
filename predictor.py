@@ -88,9 +88,9 @@ def main(record):
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
     # imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
-    imgNet_feature = PCA(n_components=200).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    imgNet_feature = PCA(n_components=800).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
     # vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
-    vSenti_feature = PCA(n_components=200).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    vSenti_feature = PCA(n_components=100).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
     visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
@@ -116,8 +116,8 @@ def main(record):
     # ground_truth = np.delete(ground_truth, empty_indices, 0)
 
     # Prepare Features with Percentile
-    f_selector = SelectPercentile(f_classif, percentile=70)
-    concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+    # f_selector = SelectPercentile(f_classif, percentile=70)
+    # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
