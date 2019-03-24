@@ -95,7 +95,7 @@ def main(record):
 
     # Text
     # sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
-    sen2vec_feature = PCA(n_components=200).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
+    sen2vec_feature = PCA(n_components=100).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
     text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
     text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
 
