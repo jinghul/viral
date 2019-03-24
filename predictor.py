@@ -87,15 +87,15 @@ def main(record):
 
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
-    imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
-    # imgNet_feature = PCA(n_components=20).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
-    vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
-    # vSenti_feature = PCA(n_components=40).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    # imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
+    imgNet_feature = PCA(n_components=40).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    # vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
+    vSenti_feature = PCA(n_components=40).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
     visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
-    sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
-    # sen2vec_feature = PCA(n_components=10).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
+    # sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
+    sen2vec_feature = PCA(n_components=20).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
     text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
     text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
 
@@ -121,7 +121,7 @@ def main(record):
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = SVR(C=30, gamma=0.01)
+    classifier = SVR(gamma='auto')
     # classifier = KernelRidge(alpha=1.0, kernel='rbf')
 
     kf = KFold(n_splits=10)
