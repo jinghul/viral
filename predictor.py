@@ -110,7 +110,7 @@ def main(record):
 
     # concatenate all the features(after dimension reduction)
     # concat_feature = text_feature
-    concat_feature = np.concatenate([visual_feature, text_feature], axis=1)
+    concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
 
     # remove the empty social feature indices
     if (social_feature == concat_feature):
