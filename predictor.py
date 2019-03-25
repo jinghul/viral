@@ -58,7 +58,7 @@ def load_social_features(video_id, video_user, user_details):
         except:
             # note: there are some users don't have social features, just assgin zero-vector to them
             # update: remove these later on so matrices are not singular
-            res.append([0.0, 0.0, 0.0]) 
+            res.append([0.0, 0.0]) 
 
     return np.array(res, dtype=np.float32)
 
