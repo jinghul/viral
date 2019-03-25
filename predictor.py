@@ -87,6 +87,13 @@ def main(record):
         ground_truth.append(float(line.strip().split('::::')[0])) 
     ground_truth = np.array(ground_truth, dtype=np.float32)
 
+    # PCA testing vals
+    PCA_vals = {
+        'imgNet' : [20, 50, 100, 200, 500, 1000],
+        'vSenti' : [40, 100, 200, 500, 1000, 1500, 2000],
+        'sen2vec' : [10, 20, 50, 75, 100]
+    }
+
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
     # imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
