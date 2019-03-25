@@ -139,33 +139,18 @@ def main(record):
     for train, test in kf.split(concat_feature):
 
         # Late Fusion --> for more info: look at stack.py
-        vis_class,text_class,social_class = Stacker(classifier),Stacker(classifier),Stacker(classifier)
+        vis_class, text_class, social_class = Stacker(classifier), Stacker(classifier), Stacker(classifier)
+        
+        # Update feature vector
         x = np.zeros((len(concat_feature), 3)) 
-        print('visual')
-        # x[train, 0] = vis_class.fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
-        # print(x[train,0].shape)
-        print('text')
-        print(text_feature[train,:].shape)
+        x[train, 0] = vis_class.fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
+        x[test, 0] = vis_class.transform(visual_feature[test,:])
         x[train, 1] = text_class.fit_transform(text_feature[train,:], ground_truth[train])[:,0]
         x[test, 1] = text_class.transform(text_feature[test])
-        print(x[train,1].shape)
-        print('social')
         x[train, 2] = social_class.fit_transform(social_feature[train,:], ground_truth[train])[:,0]
-        print(x[train,2].shape)
+        x[test, 2] = social_class.transform(social_feature[test,:])
 
         model = classifier.fit(x[train,:], ground_truth[train])
-
-        print('visual')
-        # x[test, 0] = vis_class.transform(visual_feature[test,:])
-        # print(x[test,0].shape)
-        print('text')
-        print(text_feature[test,:].shape)
-        x[test, 1] = text_class.transform(text_feature[test,:])
-        print(x[test,1].shape)
-        print('social')
-        x[test, 2] = social_class.transform(social_feature[test,:])
-        print(x[test,2].shape)
-        print('predict')
         predicts = model.predict(x[test,:])
 
         # train
