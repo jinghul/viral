@@ -145,6 +145,7 @@ def main(record):
         # x[train, 0] = vis_class.fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
         # print(x[train,0].shape)
         print('text')
+        print(text_feature[train,:].shape)
         x[train, 1] = text_class.fit_transform(text_feature[train,:], ground_truth[train])[:,0]
         print(x[train,1].shape)
         print('social')
