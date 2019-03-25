@@ -154,11 +154,14 @@ def main(record):
         model = classifier.fit(x[train,:], ground_truth[train])
 
         print('visual')
-        x[test, 0] = vis_class.transform(visual_feature[test,:])
+        # x[test, 0] = vis_class.transform(visual_feature[test,:])
+        # print(x[test,0].shape)
         print('text')
         x[test, 1] = text_class.transform(text_feature[test,:])
+        print(x[test,1].shape)
         print('social')
         x[test, 2] = social_class.transform(social_feature[test,:])
+        print(x[test,2].shape)
         print('predict')
         predicts = model.predict(x[test,:])
 
