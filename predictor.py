@@ -45,7 +45,7 @@ def load_social_features(video_id, video_user, user_details):
         social_features[data[0]] = [float(data[1]), \
                                     float(data[1]) / float(data[5]), \
                                     float(data[4]) / float(data[5]), \
-                                    float(data[2]), \
+                                    # float(data[2]), \
                                     float(data[2]) / float(data[3])]
 
     res = [] #social_feature vector for each video
@@ -55,7 +55,7 @@ def load_social_features(video_id, video_user, user_details):
         except:
             # note: there are some users don't have social features, just assgin zero-vector to them
             # update: remove these later on so matrices are not singular
-            res.append([0.0, 0.0, 0.0, 0.0, 0.0]) 
+            res.append([0.0, 0.0, 0.0, 0.0]) 
 
     return np.array(res, dtype=np.float32)
 
@@ -88,14 +88,14 @@ def main(record):
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
     # imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
-    imgNet_feature = PCA(n_components=1000).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    imgNet_feature = PCA(n_components=10).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
     # vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
-    vSenti_feature = PCA(n_components=2000).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    vSenti_feature = PCA(n_components=40).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
     visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
     # sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
-    sen2vec_feature = PCA(n_components=100).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
+    sen2vec_feature = PCA(n_components=20).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
     text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
     text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
 
