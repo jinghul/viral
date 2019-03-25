@@ -3,8 +3,9 @@
 
 # Modifications done by me, Jinghu Lei
 
-import numpy as np
 import sklearn
+import warnings
+import numpy as np
 
 class Stacker(object):
     """
@@ -30,9 +31,25 @@ class Stacker(object):
             train indices, and the test indices of the output will be obtained
             by predicting on the corresponding indices of `x`.
     """
-    
-    def __init__(self, pred, cv_fn=lambda x: sklearn.cross_validation.LeaveOneOut(x.shape[0])):
+
+    def __init__(self, pred, cv_fn=lambda x: sklearn.model_selection.KFold(n_splits=10).split(x)):
         self._pred, self._cv_fn  = pred, cv_fn
+
+
+    def multi_fit_transform(self, xs, y, r, r2=None):
+        """
+        Takes an array of feature vectors = modalities, the ground truth, and a range.
+        Returns a vector of results of the classifier trained on each of the feature vectors.
+        """
+        res = np.zeros((len(y), len(xs)))
+        for i in range(len(xs)):
+            res[r, i] = self.fit_transform(xs[i][r], y[r])[:,0]
+
+        if r2:
+            for i in range(len(xs)):
+                res[r2, i] = self.fit(xs[i][r], y[r]).transform(xs[i][r2])
+        
+        return res
 
     def fit_transform(self, x, y):
         x_trans = self._train_transform(x, y)
