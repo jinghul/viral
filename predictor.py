@@ -110,7 +110,7 @@ def main(record):
 
     # concatenate all the features(after dimension reduction)
     # concat_feature = text_feature
-    concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
+    concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1)
 
     # remove the empty social feature indices
     if (social_feature == concat_feature):
@@ -138,18 +138,25 @@ def main(record):
 
     for train, test in kf.split(concat_feature):
 
+        # Late Fusion --> for more info: look at stack.py
+        x = np.zeros((len(concat_feature), 3)) 
+        x[train, 0] = Stacker(classifier).fit_transform(visual_feature[train], ground_truth[train])[:,0]
+        x[train, 1] = Stacker(classifier).fit_transform(text_feature[train], ground_truth[train])[:,0]
+        x[train, 2] = Stacker(classifier).fit_transform(social_feature[train], ground_truth[train])[:,0]
 
-        # Late Fusion
-        # x = np.zeros((len(concat_feature[train]), 3)) 
-        # x[train, 0] = Stacker(classifier).fit_transform(visual_feature[train], ground_truth[train])[:,0]
-        # x[train, 1] = Stacker(classifier).fit_transform(text_feature[train], ground_truth[train])[:,0]
-        # x[train, 2] = Stacker(classifier).fit_transform(social_feature[train], ground_truth[train])[:,0]
+        model = classifier.fit(x[train], ground_truth[train])
+
+        x[test, 0] = Stacker(classifier).fit(visual_feature[train], ground_truth[train]).transform(visual_feature[test])
+        x[test, 1] = Stacker(classifier).fit(text_feature[train], ground_truth[train]).transform(text_feature[test])
+        x[test, 2] = Stacker(classifier).fit(social_feature[train], ground_truth[train]).transform(social_feature[test])
+
+        predicts = model.predict(x[test])
 
         # train
-        model = classifier.fit(concat_feature[train], ground_truth[train])
+        # model = classifier.fit(concat_feature[train], ground_truth[train])
         
         # predict
-        predicts = model.predict(concat_feature[test])
+        # predicts = model.predict(concat_feature[test])
 
         nMSE = mean_squared_error(ground_truth[test], predicts) / np.mean(np.square(ground_truth[test]))
         nMSEs.append(nMSE)
