@@ -102,12 +102,15 @@ def main(record):
 
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
-    imgNet_feature = PCA(n_components=PCA_vals['imgNet'][0]).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
-    vSenti_feature = PCA(n_components=PCA_vals['vSenti'][0]).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
+    # imgNet_feature = PCA(n_components=PCA_vals['imgNet'][0]).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
+    # vSenti_feature = PCA(n_components=PCA_vals['vSenti'][0]).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
     visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
-    sen2vec_feature = PCA(n_components=PCA_vals['sen2vec'][0]).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
+    sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
+    # sen2vec_feature = PCA(n_components=PCA_vals['sen2vec'][0]).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
     text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
     text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
 
@@ -129,14 +132,14 @@ def main(record):
         ground_truth = np.delete(ground_truth, empty_indices, 0)
     else:
         # Prepare Features with Percentile -- unless only social modality
-        f_selector = SelectPercentile(f_classif, percentile=70)
-        concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+        # f_selector = SelectPercentile(f_classif, percentile=70)
+        # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
         pass
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
     # classifier = SVR(C=30, gamma=0.01)
-    # classifier = KernelRidge(alpha=5.0, kernel='rbf')
+    # classifier = KernelRidge(alpha=3.0, kernel='rbf')
     classifier = MLPRegressor()
 
 
