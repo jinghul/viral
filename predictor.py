@@ -36,28 +36,26 @@ def load_social_features(video_id, video_user, user_details):
     for line in open(user_details, encoding='utf-8'):
         data = line.strip().split("::::")
 
-        # Social Features **
+        # Modified Social Features **
         # 1. Total Loop Count
         # 2. Average Loop Count
-        # 3. Average Like Count
-        # 4. Follower Count
-        # 5. Follower / Followee Ratio
-        social_features[data[0]] = [\
-                                    float(data[1]), \
-                                    float(data[1]) / float(data[5]), \
-                                    # float(data[4]) / float(data[5]), \
-                                    float(data[2]), \
-                                    # float(data[6]) \
-                                    float(data[2]) / float(data[3]) \
-                                    ]
-        # social_features[data[0]] = [float(data[1]), float(data[2])]
+        # 3. Follower Count
+        # 4. Follower / Followee Ratio
+        # social_features[data[0]] = [float(data[1]), \
+        #                             float(data[1]) / float(data[5]), \
+        #                             float(data[2]), \
+        #                             float(data[2]) / float(data[3])]
+
+
+        # Original Social Features = Total Loops + Follower Count
+        social_features[data[0]] = [float(data[1]), float(data[2])]
 
     res = [] #social_feature vector for each video
     for v in vid:
         try:
             res.append(social_features[vid_uid_dict[v]])
         except:
-            # note: there are some users don't have social features, just assgin zero-vector to them
+            # note: there are some users don't have social features, just assign zero-vector to them
             # update: remove these later on so matrices are not singular
             res.append([0.0, 0.0, 0.0, 0.0]) 
 
@@ -90,38 +88,38 @@ def main(record):
     ground_truth = np.array(ground_truth, dtype=np.float32)
 
     # Visual
-    # hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
+    hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
     # imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
-    # imgNet_feature = PCA(n_components=10).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    imgNet_feature = PCA(n_components=100).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
     # vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
-    # vSenti_feature = PCA(n_components=40).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
-    # visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
+    vSenti_feature = PCA(n_components=100).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
     # sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
-    # sen2vec_feature = PCA(n_components=20).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
-    # text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
-    # text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
+    sen2vec_feature = PCA(n_components=100).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
+    text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
+    text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
 
     # Social
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    concat_feature = social_feature
-    # concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1)
+    # concat_feature = social_feature
+    concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1)
 
     # remove the empty social feature indicies
-    empty_indices = []
-    for i in range(len(social_feature)):
-        if np.array_equal(social_feature[i],[0,0,0,0,0]):
-            empty_indices += [i]
+    # empty_indices = []
+    # for i in range(len(social_feature)):
+    #     if np.array_equal(social_feature[i],[0,0,0,0,0]):
+    #         empty_indices += [i]
 
-    concat_feature = np.delete(concat_feature, empty_indices, 0)
-    ground_truth = np.delete(ground_truth, empty_indices, 0)
+    # concat_feature = np.delete(concat_feature, empty_indices, 0)
+    # ground_truth = np.delete(ground_truth, empty_indices, 0)
 
     # Prepare Features with Percentile
-    # f_selector = SelectPercentile(f_classif, percentile=70)
-    # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+    f_selector = SelectPercentile(f_classif, percentile=70)
+    concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
