@@ -140,23 +140,29 @@ def main(record):
 
         # Late Fusion --> for more info: look at stack.py
         x = np.zeros((len(concat_feature), 3)) 
+        print('visual')
         x[train, 0] = Stacker(classifier).fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
+        print('text')
         x[train, 1] = Stacker(classifier).fit_transform(text_feature[train,:], ground_truth[train])[:,0]
+        print('social')
         x[train, 2] = Stacker(classifier).fit_transform(social_feature[train,:], ground_truth[train])[:,0]
 
         model = classifier.fit(x[train,:], ground_truth[train])
 
+        print('visual')
         x[test, 0] = Stacker(classifier).fit(visual_feature[train,:], ground_truth[train]).transform(visual_feature[test,:])
+        print('text')
         x[test, 1] = Stacker(classifier).fit(text_feature[train,:], ground_truth[train]).transform(text_feature[test,:])
+        print('social')
         x[test, 2] = Stacker(classifier).fit(social_feature[train,:], ground_truth[train]).transform(social_feature[test,:])
-
+        print('predict')
         predicts = model.predict(x[test,:])
 
         # train
-        model = classifier.fit(concat_feature[train], ground_truth[train])
+        # model = classifier.fit(concat_feature[train], ground_truth[train])
         
         # predict
-        predicts = model.predict(concat_feature[test])
+        # predicts = model.predict(concat_feature[test])
 
         nMSE = mean_squared_error(ground_truth[test], predicts) / np.mean(np.square(ground_truth[test]))
         nMSEs.append(nMSE)
