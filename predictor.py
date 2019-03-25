@@ -109,7 +109,7 @@ def main(record):
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    concat_feature = social_feature
+    concat_feature = text_feature
     # concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1)
 
     # remove the empty social feature indices
