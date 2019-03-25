@@ -109,27 +109,27 @@ def main(record):
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    # concat_feature = text_feature
+    # concat_feature = social_feature
     concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1)
 
     # remove the empty social feature indices
-    if (social_feature == concat_feature):
-        empty_indices = []
-        for i in range(len(social_feature)):
-            if np.array_equal(social_feature[i],[0,0,0,0,0]):
-                empty_indices += [i]
+    # if (social_feature == concat_feature):
+    #     empty_indices = []
+    #     for i in range(len(social_feature)):
+    #         if np.array_equal(social_feature[i],[0,0,0,0,0]):
+    #             empty_indices += [i]
 
-        concat_feature = np.delete(concat_feature, empty_indices, 0)
-        ground_truth = np.delete(ground_truth, empty_indices, 0)
-    else:
-        # Prepare Features with Percentile -- unless only social modality
-        # f_selector = SelectPercentile(f_classif, percentile=70)
-        # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
-        pass
+    #     concat_feature = np.delete(concat_feature, empty_indices, 0)
+    #     ground_truth = np.delete(ground_truth, empty_indices, 0)
+    # else:
+    #     # Prepare Features with Percentile -- unless only social modality
+    #     # f_selector = SelectPercentile(f_classif, percentile=70)
+    #     # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+    #     pass
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
-    # classifier = SVR(gamma='auto')
+    # classifier = SVR(C=30, gamma=0.01)
     classifier = KernelRidge(alpha=1.0, kernel='rbf')
 
     kf = KFold(n_splits=10)
@@ -140,23 +140,23 @@ def main(record):
 
         # Late Fusion --> for more info: look at stack.py
         x = np.zeros((len(concat_feature), 3)) 
-        x[train, 0] = Stacker(classifier).fit_transform(visual_feature[train], ground_truth[train])[:,0]
-        x[train, 1] = Stacker(classifier).fit_transform(text_feature[train], ground_truth[train])[:,0]
-        x[train, 2] = Stacker(classifier).fit_transform(social_feature[train], ground_truth[train])[:,0]
+        x[train, 0] = Stacker(classifier).fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
+        x[train, 1] = Stacker(classifier).fit_transform(text_feature[train,:], ground_truth[train])[:,0]
+        x[train, 2] = Stacker(classifier).fit_transform(social_feature[train,:], ground_truth[train])[:,0]
 
-        model = classifier.fit(x[train], ground_truth[train])
+        model = classifier.fit(x[train,:], ground_truth[train])
 
-        x[test, 0] = Stacker(classifier).fit(visual_feature[train], ground_truth[train]).transform(visual_feature[test])
-        x[test, 1] = Stacker(classifier).fit(text_feature[train], ground_truth[train]).transform(text_feature[test])
-        x[test, 2] = Stacker(classifier).fit(social_feature[train], ground_truth[train]).transform(social_feature[test])
+        x[test, 0] = Stacker(classifier).fit(visual_feature[train,:], ground_truth[train]).transform(visual_feature[test,:])
+        x[test, 1] = Stacker(classifier).fit(text_feature[train,:], ground_truth[train]).transform(text_feature[test,:])
+        x[test, 2] = Stacker(classifier).fit(social_feature[train,:], ground_truth[train]).transform(social_feature[test,:])
 
-        predicts = model.predict(x[test])
+        predicts = model.predict(x[test,:])
 
         # train
-        # model = classifier.fit(concat_feature[train], ground_truth[train])
+        model = classifier.fit(concat_feature[train], ground_truth[train])
         
         # predict
-        # predicts = model.predict(concat_feature[test])
+        predicts = model.predict(concat_feature[test])
 
         nMSE = mean_squared_error(ground_truth[test], predicts) / np.mean(np.square(ground_truth[test]))
         nMSEs.append(nMSE)
@@ -168,10 +168,11 @@ def main(record):
 
     # Optionally record and look at Results
     if record:
-        res_file = "res_%d" % int(time.time())
+        NUM_RECORDS = 100
+        res_file = "res_%d.txt" % int(time.time())
         with open(os.path.join(res_file), 'w') as f:
-            for i in range(100):
-                f.write('%s %s %s\n' % (str(concat_feature[i]), str(ground_truth[i]), str(model.predict(concat_feature[i].reshape(1,-1))[0])))
+            for i in range(NUM_RECORDS):
+                f.write('%s %s\n' % (str(ground_truth[i]), str(model.predict(concat_feature[i].reshape(1,-1))[0])))
 
 if __name__ == "__main__":
     record = False
