@@ -18,8 +18,9 @@ from sklearn.model_selection import GridSearchCV
 # Models
 # from sklearn.svm import SVR
 # from sklearn.kernel_ridge import KernelRidge
-from sklearn.neural_network import MLPRegressor
-from sklearn.ensemble import AdaBoostRegressor
+# from sklearn.neural_network import MLPRegressor
+# from sklearn.ensemble import AdaBoostRegressor
+from sklearn.ensemble import BaggingRegressor
 
 # Custom Regressor Stacker
 from stack import Stacker
@@ -103,14 +104,11 @@ def main(record):
 
     # Visual
     hist_feature = np.load(data_dir + 'histogram_feature.npz')['arr_0']
-    imgNet_feature = np.load(data_dir + 'imageNet_feature.npz')['arr_0']
-    # imgNet_feature = PCA(n_components=PCA_vals['imgNet'][0]).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
-    vSenti_feature = np.load(data_dir + 'visual_senti_feature.npz')['arr_0']
-    # vSenti_feature = PCA(n_components=PCA_vals['vSenti'][0]).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
+    imgNet_feature = PCA(n_components=PCA_vals['imgNet'][0]).fit_transform(np.load(data_dir + 'imageNet_feature.npz')['arr_0'])
+    vSenti_feature = PCA(n_components=PCA_vals['vSenti'][0]).fit_transform(np.load(data_dir + 'visual_senti_feature.npz')['arr_0'])
     visual_feature = np.concatenate([hist_feature, imgNet_feature, vSenti_feature], axis=1)
 
     # Text
-    # sen2vec_feature = np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0']
     sen2vec_feature = PCA(n_components=PCA_vals['sen2vec'][0]).fit_transform(np.load(data_dir + 'text_sentence2vec_feature.npz')['arr_0'])
     text_sent_feature = load_text_sent_features(data_dir+'text_sentiment.txt')
     text_feature = np.concatenate([sen2vec_feature, text_sent_feature], axis=1)
@@ -119,8 +117,8 @@ def main(record):
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    concat_feature = visual_feature
-    # concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
+    # concat_feature = social_feature
+    concat_feature = np.concatenate([social_feature, text_feature], axis=1)
 
     # remove the empty social feature indices
     if (social_feature.shape[1] == concat_feature.shape[1]):
@@ -141,8 +139,9 @@ def main(record):
     print("Start training and predict...")
     # classifier = SVR(C=30, gamma=0.01)
     # classifier = KernelRidge(alpha=3.0, kernel='rbf')
-    classifier = MLPRegressor(max_iter=200)
+    # classifier = MLPRegressor(max_iter=200)
     # classifier = AdaBoostRegressor()
+    classifier = BaggingRegressor()
 
 
     kf = KFold(n_splits=10)
