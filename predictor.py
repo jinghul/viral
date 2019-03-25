@@ -16,8 +16,9 @@ from sklearn.feature_selection import SelectPercentile, f_classif
 from sklearn.model_selection import GridSearchCV
 
 # Models
-from sklearn.svm import SVR
+# from sklearn.svm import SVR
 from sklearn.kernel_ridge import KernelRidge
+from sklearn.neural_network import MLPRegressor
 
 # Custom Regressor Stacker
 from stack import Stacker
@@ -36,21 +37,22 @@ def load_social_features(video_id, video_user, user_details):
     for line in open(user_details, encoding='utf-8'):
         data = line.strip().split("::::")
 
-        # Modified Social Features **
-        # 1. Total Loop Count
-        # 2. Average Loop Count
-        # 3. Follower Count
-        # 4. Follower / Followee Ratio
-        # social_features[data[0]] = [float(data[1]), \
-        #                             float(data[1]) / float(data[5]), \
-        #                             float(data[2]), \
-        #                             float(data[2]) / float(data[3])]
-
+        """
+            # Modified Social Features **
+            1. Total Loop Count
+            2. Average Loop Count
+            3. Follower Count
+            4. Follower / Followee Ratio
+            social_features[data[0]] = [float(data[1]),
+                                        float(data[1]) / float(data[5]),
+                                        float(data[2]),
+                                        float(data[2]) / float(data[3])]
+        """
 
         # Original Social Features = Total Loops + Follower Count
         social_features[data[0]] = [float(data[1]), float(data[2])]
 
-    res = [] #social_feature vector for each video
+    res = []
     for v in vid:
         try:
             res.append(social_features[vid_uid_dict[v]])
@@ -62,13 +64,17 @@ def load_social_features(video_id, video_user, user_details):
     return np.array(res, dtype=np.float32)
 
 def load_text_sent_features(sent_scores):
+    """
+    Convert sentiment scores into classes of 0, 1, 2
+    for negative, neutral, and positive respectively
+    """
     with open(sent_scores, encoding='utf-8') as f:
         scores = []
         for x in f.readlines():
             score = float(x)
-            if score < -0.25:
+            if score < -0.3:
                 scores += [0]
-            elif score <= 0.25:
+            elif score <= 0.3:
                 scores += [1]
             else:
                 scores += [2]
@@ -123,14 +129,16 @@ def main(record):
         ground_truth = np.delete(ground_truth, empty_indices, 0)
     else:
         # Prepare Features with Percentile -- unless only social modality
-        # f_selector = SelectPercentile(f_classif, percentile=70)
-        # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+        f_selector = SelectPercentile(f_classif, percentile=70)
+        concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
         pass
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
     # classifier = SVR(C=30, gamma=0.01)
-    classifier = KernelRidge(alpha=1, kernel='rbf')
+    # classifier = KernelRidge(alpha=5.0, kernel='rbf')
+    classifier = MLPRegressor()
+
 
     kf = KFold(n_splits=10)
     nMSEs = []
@@ -138,26 +146,28 @@ def main(record):
 
     for train, test in kf.split(concat_feature):
 
-        # Late Fusion --> for more info: look at stack.py
-        vis_class, text_class, social_class = Stacker(classifier), Stacker(classifier), Stacker(classifier)
-        
-        # Update feature vector
-        x = np.zeros((len(concat_feature), 3)) 
-        x[train, 0] = vis_class.fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
-        x[test, 0] = vis_class.transform(visual_feature[test,:])
-        x[train, 1] = text_class.fit_transform(text_feature[train,:], ground_truth[train])[:,0]
-        x[test, 1] = text_class.transform(text_feature[test])
-        x[train, 2] = social_class.fit_transform(social_feature[train,:], ground_truth[train])[:,0]
-        x[test, 2] = social_class.transform(social_feature[test,:])
+        """
+            # Late Fusion --> for more info: look at stack.py
+            vis_class, text_class, social_class = Stacker(classifier), Stacker(classifier), Stacker(classifier)
+            
+            # Update feature vector
+            x = np.zeros((len(concat_feature), 3)) 
+            x[train, 0] = vis_class.fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
+            x[test, 0] = vis_class.transform(visual_feature[test,:])
+            x[train, 1] = text_class.fit_transform(text_feature[train,:], ground_truth[train])[:,0]
+            x[test, 1] = text_class.transform(text_feature[test])
+            x[train, 2] = social_class.fit_transform(social_feature[train,:], ground_truth[train])[:,0]
+            x[test, 2] = social_class.transform(social_feature[test,:])
 
-        model = classifier.fit(x[train,:], ground_truth[train])
-        predicts = model.predict(x[test,:])
+            model = classifier.fit(x[train,:], ground_truth[train])
+            predicts = model.predict(x[test,:])
+        """
 
         # train
-        # model = classifier.fit(concat_feature[train], ground_truth[train])
+        model = classifier.fit(concat_feature[train], ground_truth[train])
         
         # predict
-        # predicts = model.predict(concat_feature[test])
+        predicts = model.predict(concat_feature[test])
 
         nMSE = mean_squared_error(ground_truth[test], predicts) / np.mean(np.square(ground_truth[test]))
         nMSEs.append(nMSE)
