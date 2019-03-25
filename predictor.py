@@ -123,8 +123,9 @@ def main(record):
         ground_truth = np.delete(ground_truth, empty_indices, 0)
     else:
         # Prepare Features with Percentile -- unless only social modality
-        f_selector = SelectPercentile(f_classif, percentile=70)
-        concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+        # f_selector = SelectPercentile(f_classif, percentile=70)
+        # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+        pass
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
