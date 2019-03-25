@@ -147,6 +147,7 @@ def main(record):
         print('text')
         print(text_feature[train,:].shape)
         x[train, 1] = text_class.fit_transform(text_feature[train,:], ground_truth[train])[:,0]
+        x[test, 1] = text_class.transform(text_feature[test])
         print(x[train,1].shape)
         print('social')
         x[train, 2] = social_class.fit_transform(social_feature[train,:], ground_truth[train])[:,0]
