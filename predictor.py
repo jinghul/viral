@@ -136,7 +136,7 @@ def main(record):
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
-    classifier = KernelRidge(alpha=3.0, kernel='rbf')
+    classifier = KernelRidge(alpha=2.5, kernel='rbf')
 
 
     kf = KFold(n_splits=10)
