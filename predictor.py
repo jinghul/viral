@@ -157,6 +157,7 @@ def main(record):
         print('social')
         x[test, 2] = social_class.transform(social_feature[test,:])
         print('predict')
+        print(x[train].shape, x[test].shape)
         predicts = model.predict(x[test,:])
 
         # train
