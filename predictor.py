@@ -43,11 +43,11 @@ def load_social_features(video_id, video_user, user_details):
         # 4. Follower Count
         # 5. Follower / Followee Ratio
         social_features[data[0]] = [\
-                                    # float(data[1]), \
+                                    float(data[1]), \
                                     float(data[1]) / float(data[5]), \
                                     # float(data[4]) / float(data[5]), \
                                     float(data[2]), \
-                                    float(data[6]) \
+                                    # float(data[6]) \
                                     # float(data[2]) / float(data[3]) \
                                     ]
         # social_features[data[0]] = [float(data[1]), float(data[2])]
