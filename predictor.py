@@ -113,24 +113,24 @@ def main(record):
     concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1)
 
     # remove the empty social feature indices
-    # if (social_feature == concat_feature):
-    #     empty_indices = []
-    #     for i in range(len(social_feature)):
-    #         if np.array_equal(social_feature[i],[0,0,0,0,0]):
-    #             empty_indices += [i]
+    if (social_feature.shape[1] == concat_feature.shape[1]):
+        empty_indices = []
+        for i in range(len(social_feature)):
+            if np.array_equal(social_feature[i],[0,0]):
+                empty_indices += [i]
 
-    #     concat_feature = np.delete(concat_feature, empty_indices, 0)
-    #     ground_truth = np.delete(ground_truth, empty_indices, 0)
-    # else:
-    #     # Prepare Features with Percentile -- unless only social modality
-    #     # f_selector = SelectPercentile(f_classif, percentile=70)
-    #     # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
-    #     pass
+        concat_feature = np.delete(concat_feature, empty_indices, 0)
+        ground_truth = np.delete(ground_truth, empty_indices, 0)
+    else:
+        # Prepare Features with Percentile -- unless only social modality
+        # f_selector = SelectPercentile(f_classif, percentile=70)
+        # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
+        pass
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
     # classifier = SVR(C=30, gamma=0.01)
-    classifier = KernelRidge(alpha=1.0, kernel='rbf')
+    classifier = KernelRidge(alpha=1, kernel='rbf')
 
     kf = KFold(n_splits=10)
     nMSEs = []
@@ -139,22 +139,23 @@ def main(record):
     for train, test in kf.split(concat_feature):
 
         # Late Fusion --> for more info: look at stack.py
+        vis_class,text_class,social_class = Stacker(classifier),Stacker(classifier),Stacker(classifier)
         x = np.zeros((len(concat_feature), 3)) 
         print('visual')
-        x[train, 0] = Stacker(classifier).fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
+        x[train, 0] = vis_class.fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
         print('text')
-        x[train, 1] = Stacker(classifier).fit_transform(text_feature[train,:], ground_truth[train])[:,0]
+        x[train, 1] = text_class.fit_transform(text_feature[train,:], ground_truth[train])[:,0]
         print('social')
-        x[train, 2] = Stacker(classifier).fit_transform(social_feature[train,:], ground_truth[train])[:,0]
+        x[train, 2] = social_class.fit_transform(social_feature[train,:], ground_truth[train])[:,0]
 
         model = classifier.fit(x[train,:], ground_truth[train])
 
         print('visual')
-        x[test, 0] = Stacker(classifier).fit(visual_feature[train,:], ground_truth[train]).transform(visual_feature[test,:])
+        x[test, 0] = vis_class.transform(visual_feature[test,:])
         print('text')
-        x[test, 1] = Stacker(classifier).fit(text_feature[train,:], ground_truth[train]).transform(text_feature[test,:])
+        x[test, 1] = text_class.transform(text_feature[test,:])
         print('social')
-        x[test, 2] = Stacker(classifier).fit(social_feature[train,:], ground_truth[train]).transform(social_feature[test,:])
+        x[test, 2] = social_class.transform(social_feature[test,:])
         print('predict')
         predicts = model.predict(x[test,:])
 
