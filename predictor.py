@@ -17,10 +17,10 @@ from sklearn.model_selection import GridSearchCV
 
 # Models
 # from sklearn.svm import SVR
-# from sklearn.kernel_ridge import KernelRidge
+from sklearn.kernel_ridge import KernelRidge
 # from sklearn.neural_network import MLPRegressor
 # from sklearn.ensemble import AdaBoostRegressor
-from sklearn.ensemble import BaggingRegressor
+# from sklearn.ensemble import BaggingRegressor
 
 # Custom Regressor Stacker
 from stack import Stacker
@@ -131,17 +131,12 @@ def main(record):
         ground_truth = np.delete(ground_truth, empty_indices, 0)
     else:
         # Prepare Features with Percentile -- unless only social modality
-        # f_selector = SelectPercentile(f_classif, percentile=70)
-        # concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
-        pass
+        f_selector = SelectPercentile(f_classif, percentile=70)
+        concat_feature = f_selector.fit_transform(concat_feature, ground_truth)
     print("The input data dimension is: (%d, %d)" % (concat_feature.shape))
     
     print("Start training and predict...")
-    # classifier = SVR(C=30, gamma=0.01)
-    # classifier = KernelRidge(alpha=3.0, kernel='rbf')
-    # classifier = MLPRegressor(max_iter=200)
-    # classifier = AdaBoostRegressor()
-    classifier = BaggingRegressor()
+    classifier = KernelRidge(alpha=3.0, kernel='rbf')
 
 
     kf = KFold(n_splits=10)
