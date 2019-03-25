@@ -85,4 +85,5 @@ class Stacker(object):
         return x_trans
 
     def _test_transform(self, x):
-        return self._pred.predict(x)
+        print(x.shape)
+        return self._pred.predict(x[:,:])
