@@ -142,11 +142,14 @@ def main(record):
         vis_class,text_class,social_class = Stacker(classifier),Stacker(classifier),Stacker(classifier)
         x = np.zeros((len(concat_feature), 3)) 
         print('visual')
-        x[train, 0] = vis_class.fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
+        # x[train, 0] = vis_class.fit_transform(visual_feature[train,:], ground_truth[train])[:,0]
+        # print(x[train,0].shape)
         print('text')
         x[train, 1] = text_class.fit_transform(text_feature[train,:], ground_truth[train])[:,0]
+        print(x[train,1].shape)
         print('social')
         x[train, 2] = social_class.fit_transform(social_feature[train,:], ground_truth[train])[:,0]
+        print(x[train,2].shape)
 
         model = classifier.fit(x[train,:], ground_truth[train])
 
@@ -157,7 +160,6 @@ def main(record):
         print('social')
         x[test, 2] = social_class.transform(social_feature[test,:])
         print('predict')
-        print(x[train].shape, x[test].shape)
         predicts = model.predict(x[test,:])
 
         # train
