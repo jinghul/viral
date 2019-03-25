@@ -32,7 +32,7 @@ class Stacker(object):
             by predicting on the corresponding indices of `x`.
     """
 
-    def __init__(self, pred, cv_fn=lambda x: sklearn.model_selection.KFold(n_splits=10).split(x)):
+    def __init__(self, pred, cv_fn=lambda x: sklearn.model_selection.KFold(n_splits=2).split(x)):
         self._pred, self._cv_fn  = pred, cv_fn
 
 
