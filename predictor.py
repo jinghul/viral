@@ -42,7 +42,7 @@ def load_social_features(video_id, video_user, user_details):
         # 3. Average Like Count
         # 4. Follower Count
         # 5. Follower / Followee Ratio
-        social_features[data[0]] = [float(data[3]), float(data[4])]
+        social_features[data[0]] = [float(data[3])]
         # social_features[data[0]] = [float(data[1]), \
         #                             float(data[1]) / float(data[5]), \
         #                             float(data[4]) / float(data[5]), \
@@ -56,7 +56,7 @@ def load_social_features(video_id, video_user, user_details):
         except:
             # note: there are some users don't have social features, just assgin zero-vector to them
             # update: remove these later on so matrices are not singular
-            res.append([0.0, 0.0]) 
+            res.append([0.0]) 
 
     return np.array(res, dtype=np.float32)
 
