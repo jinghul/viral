@@ -118,8 +118,8 @@ def main(record):
     social_feature = load_social_features(data_dir + 'video_id.txt', data_dir + 'video_user.txt', data_dir + 'user_details.txt')
 
     # concatenate all the features(after dimension reduction)
-    concat_feature = visual_feature
-    # concat_feature = np.concatenate([visual_feature, social_feature, text_feature], axis=1)
+    # concat_feature = visual_feature
+    concat_feature = np.concatenate([visual_feature, social_feature], axis=1)
 
     # remove the empty social feature indices
     if (social_feature.shape[1] == concat_feature.shape[1]):
@@ -140,7 +140,7 @@ def main(record):
     print("Start training and predict...")
     # classifier = SVR(C=30, gamma=0.01)
     # classifier = KernelRidge(alpha=3.0, kernel='rbf')
-    classifier = MLPRegressor()
+    classifier = MLPRegressor(max_iter=500)
 
 
     kf = KFold(n_splits=10)
